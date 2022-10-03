@@ -1,5 +1,5 @@
 from django.core.wsgi import get_wsgi_application
-from cheq_rti_middleware.RtiWsgiMiddleware import RtiMiddleware
+from cheq_wsgi_middlewares.RtiWsgiMiddleware import RtiMiddleware
 import os
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hellodjango.settings")

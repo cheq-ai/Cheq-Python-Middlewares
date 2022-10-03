@@ -1,7 +1,7 @@
 import unittest
 from werkzeug.testapp import test_app
-from cheq_rti_middleware.RtiWsgiMiddleware import RtiMiddleware
-from cheq_rti_middleware.constants import errors
+from cheq_wsgi_middlewares.RtiWsgiMiddleware import RtiMiddleware
+from cheq_wsgi_middlewares.constants import errors
 
 
 class TestRtiOptions(unittest.TestCase):

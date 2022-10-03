@@ -1,9 +1,9 @@
 import types
 from werkzeug.wrappers import Request
-from cheq_rti_middleware.constants.rti_constants import rti_mode, api_endpoints, invalid_default_block_redirect_codes, invalid_default_captcha_codes
-from cheq_rti_middleware.utils.request_builder import rti_request_builder
-from cheq_rti_middleware.constants import errors
-from cheq_rti_middleware.utils.logger import RtiLogger
+from cheq_wsgi_middlewares.constants.rti_constants import rti_mode, api_endpoints, invalid_default_block_redirect_codes, invalid_default_captcha_codes
+from cheq_wsgi_middlewares.utils.request_builder import rti_request_builder
+from cheq_wsgi_middlewares.constants import errors
+from cheq_wsgi_middlewares.utils.logger import RtiLogger
 import requests
 import re
 

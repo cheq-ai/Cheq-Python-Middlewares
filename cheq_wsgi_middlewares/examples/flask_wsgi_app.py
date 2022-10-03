@@ -1,5 +1,5 @@
 from flask import Flask
-from cheq_rti_middleware.RtiWsgiMiddleware import RtiMiddleware
+from cheq_wsgi_middlewares.RtiWsgiMiddleware import RtiMiddleware
 
 api_key = "62fdc812-be58-492f-9417-66a1f22b4da1"
 tag_hash = "5f863bea211c957865e067b148f2471b"
