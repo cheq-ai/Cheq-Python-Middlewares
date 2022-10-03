@@ -19,38 +19,38 @@ def is_valid_uris(uris):
 
 
 class RtiMiddleware(object):
-    def __init__(self, option):
-        if not option:
+    def __init__(self, options):
+        if not options:
             raise Exception(errors.MISSING_RTI_OPTIONS)
 
-        app = option.get('app', None)
-        if not option.get('app', None):
+        app = options.get('app', None)
+        if not options.get('app', None):
             raise Exception(errors.MISSING_WSGI_APP)
 
-        api_key = option.get('api_key', None)
-        if not option.get('api_key', None):
+        api_key = options.get('api_key', None)
+        if not options.get('api_key', None):
             raise Exception(errors.MISSING_API_KEY)
 
-        tag_hash = option.get('tag_hash', None)
-        if not option.get('tag_hash', None):
+        tag_hash = options.get('tag_hash', None)
+        if not options.get('tag_hash', None):
             raise Exception(errors.MISSING_TAG_HASH)
 
-        api_endpoint = option.get('api_endpoint', None)
+        api_endpoint = options.get('api_endpoint', None)
         if not api_endpoint or api_endpoint not in api_endpoints:
             raise Exception(errors.MISSING_API_ENDPOINT)
 
-        mode = option.get('mode', None)
+        mode = options.get('mode', None)
         if not mode or (mode != rti_mode['MONITORING'] and mode != rti_mode['BLOCKING']):
-            option['mode'] = rti_mode['MONITORING']
+            options['mode'] = rti_mode['MONITORING']
 
-        uri_exclusion = option.get('uri_exclusion', None)
+        uri_exclusion = options.get('uri_exclusion', None)
         if not uri_exclusion:
-            option['uri_exclusion'] = []
+            options['uri_exclusion'] = []
         elif not is_valid_uris(uri_exclusion):
             raise Exception(errors.INVALID_URI_EXCLUSION_LIST)
 
-        invalid_block_redirect_codes = option.get('invalid_block_redirect_codes', invalid_default_block_redirect_codes)
-        invalid_captcha_codes = option.get('invalid_captcha_codes', invalid_default_captcha_codes)
+        invalid_block_redirect_codes = options.get('invalid_block_redirect_codes', invalid_default_block_redirect_codes)
+        invalid_captcha_codes = options.get('invalid_captcha_codes', invalid_default_captcha_codes)
 
         if not isinstance(invalid_block_redirect_codes, list) or \
                 not all(isinstance(code, int) for code in invalid_block_redirect_codes) or \
@@ -61,20 +61,26 @@ class RtiMiddleware(object):
                for block_redirect_code in invalid_block_redirect_codes):
             raise Exception(errors.DUPLICATE_THREAT_CODE)
 
-        self.prams = {
-            'app': app,
-            'api_key': api_key,
-            'tag_hash': tag_hash,
-            'mode': mode,
-            'uri_exclusion': [],
-            'api_endpoint': api_endpoint,
-            'redirect_url': option.get('redirect_url', None),
-            'callback': option.get('callback', None),
-            'rout_to_event_type': option.get('rout_to_event_type', dict()),
-            'invalid_block_redirect_codes': invalid_block_redirect_codes,
-            'invalid_captcha_codes': invalid_captcha_codes,
-            'trusted_ip_header': option.get('trusted_ip_header', '')
-        }
+        self.prams = options
+        #     {
+        #     'app': app,
+        #     'api_key': api_key,
+        #     'tag_hash': tag_hash,
+        #     'mode': mode,
+        #     'uri_exclusion': [],
+        #     'api_endpoint': api_endpoint,
+        #     'redirect_url': option.get('redirect_url', None),
+        #     'callback': option.get('callback', None),
+        #     'rout_to_event_type': option.get('rout_to_event_type', dict()),
+        #     'invalid_block_redirect_codes': invalid_block_redirect_codes,
+        #     'invalid_captcha_codes': invalid_captcha_codes,
+        #     'trusted_ip_header': option.get('trusted_ip_header', ''),
+        #     'get_ja3': option.get('get_ja3', None),
+        #     'get_resource_type': option.get('get_resource_type', None),
+        #     'timeout': option.get('timeout', None),
+        #     'get_channel': option.get('get_channel', None),
+        #
+        # }
 
         self.logger = RtiLogger(api_key, tag_hash)
 
@@ -84,6 +90,7 @@ class RtiMiddleware(object):
         request = Request(environ)
         req_prams = rti_request_builder(request, self.prams)
         custom_start_response = start_response
+        # TODO call app(environ, custom_start_response) if route in uri_exclusion list
         try:
             def set_cookie(cookie):
                 def set_cookie_start_response(status, headers, exc_info=None):
@@ -112,13 +119,13 @@ class RtiMiddleware(object):
 
             if threat_type_code in invalid_block_redirect_codes and is_invalid:
                 if redirect_url is not None:
-                    return start_response('302', [('Location',self.prams.get('redirect_url'))])
+                    return start_response('302', [('Location', self.prams.get('redirect_url'))])
                 else:
                     return start_response('403')
 
             if threat_type_code in invalid_captcha_codes and isinstance(callback, types.FunctionType):
-                return callback(environ, custom_start_response)
+                return callback(app, environ, custom_start_response)
         except Exception as e:
-            self.logger.error('rti')
+            self.logger.error('rti', e.msg)
             pass
         return app(environ, custom_start_response)
