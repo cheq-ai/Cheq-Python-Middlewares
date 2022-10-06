@@ -1,7 +1,9 @@
 import unittest
+
+import pkg_resources
 from werkzeug.testapp import test_app
-from cheq_wsgi_middlewares.RtiWsgiMiddleware import RtiMiddleware
-from cheq_wsgi_middlewares.constants import errors
+from cheq_rti_wsgi_middleware.RtiWsgiMiddleware import RtiMiddleware
+from cheq_rti_wsgi_middleware.constants import errors
 
 
 class TestRtiOptions(unittest.TestCase):
@@ -18,7 +20,7 @@ class TestRtiOptions(unittest.TestCase):
             'invalid_captcha_codes': [],
             'redirect_url': 'https://invalid-user.com',
             'callback': 'callback',
-            'rout_to_event_type': dict(),
+            'route_to_event_type': dict(),
             'trusted_ip_header': 'Client-IP'
 
         }

@@ -1,9 +1,9 @@
 import types
 from werkzeug.wrappers import Request
-from cheq_wsgi_middlewares.constants.rti_constants import rti_mode, api_endpoints, invalid_default_block_redirect_codes, invalid_default_captcha_codes
-from cheq_wsgi_middlewares.utils.request_builder import rti_request_builder
-from cheq_wsgi_middlewares.constants import errors
-from cheq_wsgi_middlewares.utils.logger import RtiLogger
+from cheq_rti_wsgi_middleware.constants.rti_constants import rti_mode, api_endpoints, invalid_default_block_redirect_codes, invalid_default_captcha_codes
+from cheq_rti_wsgi_middleware.utils.request_builder import rti_request_builder
+from cheq_rti_wsgi_middleware.constants import errors
+from cheq_rti_wsgi_middleware.utils.logger import RtiLogger
 import requests
 import re
 
@@ -61,26 +61,25 @@ class RtiMiddleware(object):
                for block_redirect_code in invalid_block_redirect_codes):
             raise Exception(errors.DUPLICATE_THREAT_CODE)
 
-        self.prams = options
-        #     {
-        #     'app': app,
-        #     'api_key': api_key,
-        #     'tag_hash': tag_hash,
-        #     'mode': mode,
-        #     'uri_exclusion': [],
-        #     'api_endpoint': api_endpoint,
-        #     'redirect_url': option.get('redirect_url', None),
-        #     'callback': option.get('callback', None),
-        #     'rout_to_event_type': option.get('rout_to_event_type', dict()),
-        #     'invalid_block_redirect_codes': invalid_block_redirect_codes,
-        #     'invalid_captcha_codes': invalid_captcha_codes,
-        #     'trusted_ip_header': option.get('trusted_ip_header', ''),
-        #     'get_ja3': option.get('get_ja3', None),
-        #     'get_resource_type': option.get('get_resource_type', None),
-        #     'timeout': option.get('timeout', None),
-        #     'get_channel': option.get('get_channel', None),
-        #
-        # }
+        self.prams = {
+            'app': app,
+            'api_key': api_key,
+            'tag_hash': tag_hash,
+            'mode': mode,
+            'uri_exclusion': [],
+            'api_endpoint': api_endpoint,
+            'redirect_url': options.get('redirect_url', None),
+            'callback': options.get('callback', None),
+            'route_to_event_type': options.get('rout_to_event_type', dict()),
+            'invalid_block_redirect_codes': invalid_block_redirect_codes,
+            'invalid_captcha_codes': invalid_captcha_codes,
+            'trusted_ip_header': options.get('trusted_ip_header', ''),
+            'get_ja3': options.get('get_ja3', None),
+            'get_resource_type': options.get('get_resource_type', None),
+            'timeout': options.get('timeout', None),
+            'get_channel': options.get('get_channel', None),
+
+        }
 
         self.logger = RtiLogger(api_key, tag_hash)
 
@@ -90,7 +89,10 @@ class RtiMiddleware(object):
         request = Request(environ)
         req_prams = rti_request_builder(request, self.prams)
         custom_start_response = start_response
-        # TODO call app(environ, custom_start_response) if route in uri_exclusion list
+
+        if should_skip_route(request.path, self.prams.get('uri_exclusion')):
+            return app(environ, start_response)
+
         try:
             def set_cookie(cookie):
                 def set_cookie_start_response(status, headers, exc_info=None):
@@ -98,13 +100,13 @@ class RtiMiddleware(object):
                     return start_response(status, headers, exc_info)
                 return set_cookie_start_response
 
-            res = requests.post("%s/v1/realtime-interception" % (self.prams.get('api_endpoint')),
+            res = requests.post(f"{self.prams.get('api_endpoint')}/v1/realtime-interception",
                                 req_prams, headers={'Content-Type': 'application/x-www-form-urlencoded'})
             rti_response = res.json()
 
             if rti_response is None or rti_response.get('threatTypeCode', None) is None or not isinstance(
                     rti_response['isInvalid'], bool) or not rti_response['isInvalid'] or self.prams['mode'] == rti_mode['MONITORING']:
-                return app(environ, custom_start_response)
+                return app(environ, start_response)
 
             cookie = rti_response.get('setCookie', None)
             if cookie:
@@ -129,3 +131,11 @@ class RtiMiddleware(object):
             self.logger.error('rti', e.msg)
             pass
         return app(environ, custom_start_response)
+
+
+def should_skip_route(path, uri_exclusion):
+    if path in uri_exclusion:
+        return True
+    else:
+        return False
+

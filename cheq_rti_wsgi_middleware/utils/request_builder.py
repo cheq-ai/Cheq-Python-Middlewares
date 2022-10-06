@@ -2,6 +2,7 @@ from datetime import datetime
 from http.cookies import SimpleCookie
 import pkg_resources
 
+
 def cookie_parser(cookie):
     if not cookie:
         return None
@@ -34,10 +35,14 @@ def none_func(request):
 def rti_request_builder(request, params):
     req_params = dict()
 
-    req_params['EventType'] = params.get('rout_to_event_type', {}).get(request.path) or 'page_load'
+    get_resource_type = params.get('get_resource_type', none_func) or none_func
+    get_ja3 = params.get('get_ja3', none_func) or none_func
+    get_channel = params.get('get_channel', none_func) or none_func
+
+    req_params['EventType'] = params.get('route_to_event_type', {}).get(request.path, None) or 'page_load'
     req_params['ApiKey'] = params['api_key']
     req_params['TagHash'] = params['tag_hash']
-    req_params['ResourceType'] = params.get('get_resource_type', none_func)(request) or 'text/html'
+    req_params['ResourceType'] = get_resource_type(request) or 'text/html'
     req_params['CheqCookie'] = cookie_parser(request.headers.get('Cookie', None))
     req_params['Method'] = request.headers.environ['REQUEST_METHOD'],
     req_params['ClientIP'] = request.headers.get(params.get('trusted_ip_header', ''), None) or get_client_ip(request),
@@ -62,8 +67,8 @@ def rti_request_builder(request, params):
     req_params['XRealIP'] = request.headers.get('x-real-ip', None),
     req_params['RemoteAddr'] = request.headers.get('remote-addr', None),
     req_params['Forwarded'] = request.headers.get('forwarded', None),
-    req_params['JA3'] = params.get('get_ja3', none_func)(request),
-    req_params['Channel'] = params.get('get_channel', none_func)(request),
+    req_params['JA3'] = get_ja3(request),
+    req_params['Channel'] = get_channel(request),
     req_params['MiddlewareVersion'] = f"python_{pkg_resources.require('cheq_wsgi_middlewares')[0].version}"
 
     return req_params

@@ -1,4 +1,3 @@
-frameworks = ['flask', 'django']
 rti_mode = {
     'MONITORING': 'monitoring',
     'BLOCKING': 'blocking'

@@ -1,5 +1,5 @@
-# cheq-express-middlewares
-CHEQ middlewares for Express.Js
+# cheq-rti-wsgi-middleware
+CHEQ Real Time Interception middleware for Python 3 wsgi application
 
 
 
@@ -13,6 +13,7 @@ CHEQ middlewares for Express.Js
         * [API endpoint](#api-endpoint)
     * [Optional configuration](#optional-configuration)
         * [Mode](#mode)
+        * [Event Type](#event-type)
         * [Threat type codes](#threat-type-codes)
         * [Redirect URL](#redirect-url)
         * [Callback function](#callback-function)
@@ -30,7 +31,7 @@ CHEQ middlewares for Express.Js
 
 ## Installation
 ````bash
-$ pip install cheq-wsgi-middlewares
+$ pip install cheq-rti-wsgi-middleware
 ````
 
 ## Real time interception
@@ -92,6 +93,23 @@ The default value will be `monitoring`.
 options = {
     ...
     'mode': 'blocking'
+    ...
+}
+````
+
+##### Event type
+
+- `route_to_event_type` - A dictionary of routes as keys and cheq event type as value.<br> Default `page_load` will be used as event type   
+
+```` python
+options = {
+    ...
+    'route_to_event_type': {
+        '/': 'page_load',
+        '/subscribe': 'subscribe',
+        .....
+        .....
+    }
     ...
 }
 ````
@@ -255,7 +273,7 @@ options = {
     'api_key': "62fdc812-be58-492f-9417-66a1f22b4da1",
     'tag_hash': "5f863bea211c957865e067b148f2471b",
     'api_endpoint': 'https://rti-us-east-1.cheqzone.com',
-    'rout_to_event_type': dict(),
+    'route_to_event_type': dict(),
     'mode': 'blocking',
     'uri_exclusion': [],
     'invalid_block_redirect_codes': [],
@@ -270,7 +288,7 @@ app.wsgi_app = RtiMiddleware(options)
 
 @app.route("/")
 def index():
-    return "Hello this is the new version!"
+    return "Hello World"
 
 
 if __name__ == '__main__':
@@ -290,7 +308,7 @@ options = {
     'api_key': "62fdc812-be58-492f-9417-66a1f22b4da1",
     'tag_hash': "5f863bea211c957865e067b148f2471b",
     'api_endpoint': 'https://rti-us-east-1.cheqzone.com',
-    'rout_to_event_type': dict(),
+    'route_to_event_type': dict(),
     'mode': 'blocking',
     'uri_exclusion': [],
     'invalid_block_redirect_codes': [],
