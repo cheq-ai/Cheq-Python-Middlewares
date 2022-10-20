@@ -49,14 +49,22 @@ class RtiMiddleware(object):
         elif not is_valid_uris(uri_exclusion):
             raise Exception(errors.INVALID_URI_EXCLUSION_LIST)
 
-        invalid_block_redirect_codes = options.get('invalid_block_redirect_codes', invalid_default_block_redirect_codes)
-        invalid_captcha_codes = options.get('invalid_captcha_codes', invalid_default_captcha_codes)
+        invalid_block_redirect_codes = []
+        redirect_codes = options.get('invalid_block_redirect_codes', [])
+        if not isinstance(redirect_codes, list) or redirect_codes.len == 0:
+            invalid_block_redirect_codes = invalid_default_block_redirect_codes
+
+        invalid_captcha_codes = []
+        captcha_codes = options.get('invalid_captcha_codes', [])
+        if not isinstance(captcha_codes, list) or captcha_codes.len == 0:
+            invalid_captcha_codes = invalid_default_captcha_codes
 
         if not isinstance(invalid_block_redirect_codes, list) or \
                 not all(isinstance(code, int) for code in invalid_block_redirect_codes) or \
                 not isinstance(invalid_captcha_codes, list) or \
                 not all(isinstance(code, int) for code in invalid_captcha_codes):
             raise Exception(errors.INVALID_THREAT_CODE_LIST)
+
         if any(any(captcha_code == block_redirect_code for captcha_code in invalid_captcha_codes) \
                for block_redirect_code in invalid_block_redirect_codes):
             raise Exception(errors.DUPLICATE_THREAT_CODE)
@@ -114,7 +122,7 @@ class RtiMiddleware(object):
 
             threat_type_code = rti_response.get('threatTypeCode', None)
             is_invalid = rti_response.get('isInvalid', None)
-            invalid_captcha_codes = self.prams.get('invalid_default_captcha_codes', [])
+            invalid_captcha_codes = self.prams.get('invalid_captcha_codes', [])
             invalid_block_redirect_codes = self.prams.get('invalid_block_redirect_codes', [])
             callback = self.prams.get('callback', None)
             redirect_url = self.prams.get('redirect_url', None)

@@ -69,7 +69,7 @@ def rti_request_builder(request, params):
     req_params['Forwarded'] = request.headers.get('forwarded', None),
     req_params['JA3'] = get_ja3(request),
     req_params['Channel'] = get_channel(request),
-    req_params['MiddlewareVersion'] = f"python_{pkg_resources.require('cheq_wsgi_middlewares')[0].version}"
+    req_params['MiddlewareVersion'] = f"python_{pkg_resources.require('cheq-rti-wsgi-middleware')[0].version}"
 
     return req_params
 
