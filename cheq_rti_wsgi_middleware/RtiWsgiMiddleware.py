@@ -51,13 +51,18 @@ class RtiMiddleware(object):
 
         invalid_block_redirect_codes = []
         redirect_codes = options.get('invalid_block_redirect_codes', [])
-        if not isinstance(redirect_codes, list) or redirect_codes.len == 0:
+        if isinstance(redirect_codes, list) and len(redirect_codes) == 0:
             invalid_block_redirect_codes = invalid_default_block_redirect_codes
+        else:
+            invalid_block_redirect_codes = redirect_codes
 
         invalid_captcha_codes = []
         captcha_codes = options.get('invalid_captcha_codes', [])
-        if not isinstance(captcha_codes, list) or captcha_codes.len == 0:
+        if isinstance(captcha_codes, list) and len(captcha_codes) == 0:
             invalid_captcha_codes = invalid_default_captcha_codes
+        else:
+            invalid_captcha_codes = captcha_codes
+
 
         if not isinstance(invalid_block_redirect_codes, list) or \
                 not all(isinstance(code, int) for code in invalid_block_redirect_codes) or \
