@@ -1,7 +1,5 @@
 # Cheq-Python-Middlewares
-Cheq-Python-Middlewares
-=======
-# cheq-rti-wsgi-middleware
+## Cheq-RTI-WSGI-Middleware
 CHEQ Real Time Interception middleware for Python 3 wsgi application
 
 
