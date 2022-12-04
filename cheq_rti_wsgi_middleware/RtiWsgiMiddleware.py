@@ -134,9 +134,11 @@ class RtiMiddleware(object):
 
             if threat_type_code in invalid_block_redirect_codes and is_invalid:
                 if redirect_url is not None:
-                    return start_response('302', [('Location', self.prams.get('redirect_url'))])
+                    start_response('302', [('Location', self.prams.get('redirect_url'))])
+                    return ['redirect']
                 else:
-                    return start_response('403')
+                    start_response('403', [('Content-Type', 'text/html')])
+                    return ['blocked']
 
             if threat_type_code in invalid_captcha_codes and isinstance(callback, types.FunctionType):
                 return callback(app, environ, custom_start_response)
